@@ -61,7 +61,7 @@ const CTRL_BTN = {
 export default function ViewerPage({ onBack, initialPick }) {
   const {
     events, sessionInfo, frames, track, standingsByLap, telemetry,
-    loading, error, fetchEvents, loadSession, fetchTelemetry,
+    loading, error, backendOffline, fetchEvents, loadSession, fetchTelemetry,
   } = useSession();
 
   const liveSession = useLiveSession();
@@ -393,44 +393,60 @@ export default function ViewerPage({ onBack, initialPick }) {
         )}
 
         {/* ── MAIN GRID — fills all remaining height ───────────────────────── */}
-        <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+        <div style={{ display: "flex", flex: 1, overflow: "hidden", position: "relative" }}>
+          {backendOffline ? (
+            <div style={{
+              position: "absolute", inset: 0,
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center", gap: 8,
+            }}>
+              <span style={{ fontSize: 11, letterSpacing: 2, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", fontFamily: SYS }}>
+                Backend Offline
+              </span>
+              <span style={{ fontSize: 11, letterSpacing: 1, color: "rgba(255,255,255,0.15)", textTransform: "uppercase", fontFamily: SYS }}>
+                Start the server on the host machine to continue.
+              </span>
+            </div>
+          ) : (
+            <>
+              {/* Track Map — ~50% */}
+              <div style={{
+                flex: 2,
+                borderRight: "0.5px solid rgba(255,255,255,0.08)",
+                overflow: "hidden",
+              }}>
+                <TrackMap
+                  track={track}
+                  positions={positions}
+                  selectedDriver={selectedDriver}
+                  onSelectDriver={handleSelectDriver}
+                />
+              </div>
 
-          {/* Track Map — ~50% */}
-          <div style={{
-            flex: 2,
-            borderRight: "0.5px solid rgba(255,255,255,0.08)",
-            overflow: "hidden",
-          }}>
-            <TrackMap
-              track={track}
-              positions={positions}
-              selectedDriver={selectedDriver}
-              onSelectDriver={handleSelectDriver}
-            />
-          </div>
+              {/* Standings — ~25% */}
+              <div style={{
+                flex: 1,
+                borderRight: "0.5px solid rgba(255,255,255,0.08)",
+                overflow: "hidden",
+              }}>
+                <StandingsTable
+                  standings={standings}
+                  selectedDriver={selectedDriver}
+                  onSelectDriver={handleSelectDriver}
+                />
+              </div>
 
-          {/* Standings — ~25% */}
-          <div style={{
-            flex: 1,
-            borderRight: "0.5px solid rgba(255,255,255,0.08)",
-            overflow: "hidden",
-          }}>
-            <StandingsTable
-              standings={standings}
-              selectedDriver={selectedDriver}
-              onSelectDriver={handleSelectDriver}
-            />
-          </div>
-
-          {/* Telemetry — ~25% */}
-          <div style={{ flex: 1, overflow: "hidden" }}>
-            <TelemetryPanel
-              telemetry={telemetry}
-              driver={selectedDriver}
-              driverColor={driverColor}
-              fetchError={error}
-            />
-          </div>
+              {/* Telemetry — ~25% */}
+              <div style={{ flex: 1, overflow: "hidden" }}>
+                <TelemetryPanel
+                  telemetry={telemetry}
+                  driver={selectedDriver}
+                  driverColor={driverColor}
+                  fetchError={error}
+                />
+              </div>
+            </>
+          )}
         </div>
       </div>
     </>

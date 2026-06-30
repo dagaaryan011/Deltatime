@@ -117,6 +117,11 @@ async def ws_live(websocket: WebSocket, session_id: str):
     await live.handle_live(websocket, session_id, session, bounds)
 
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
 # ── Serve React frontend (production) ────────────────────────────────────────
 # In dev, Vite serves the frontend directly. This only activates when dist/ exists.
 

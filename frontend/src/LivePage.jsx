@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession } from "./hooks/useSession";
 import { useLiveSession } from "./hooks/useLiveSession";
+import { BASE, API } from "./utils/api";
 import TrackMap from "./components/TrackMap";
 import StandingsTable from "./components/StandingsTable";
 import TelemetryPanel from "./components/TelemetryPanel";
@@ -62,11 +63,19 @@ export default function LivePage({ onBack }) {
   const [countdown, setCountdown] = useState(null);
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [frameIdx, setFrameIdx] = useState(0);
+  const [backendOffline, setBackendOffline] = useState(false);
   const autoConnected = useRef(false);
+
+  // Health check on mount — instant offline detection before WS timeout
+  useEffect(() => {
+    fetch(`${BASE}/health`)
+      .then((r) => { if (!r.ok) setBackendOffline(true); })
+      .catch(() => setBackendOffline(true));
+  }, []);
 
   // Fetch schedule once
   useEffect(() => {
-    fetch("/api/sessions/2026")
+    fetch(`${API}/sessions/2026`)
       .then((r) => r.json())
       .then(setSchedule)
       .catch(() => {});
@@ -150,6 +159,7 @@ export default function LivePage({ onBack }) {
   const driverColor = standings.find((s) => s.driver === selectedDriver)?.color;
   const isConnected = liveSession.connected;
   const hasFrames = activeFrames.length > 0;
+  const isOffline = backendOffline || liveSession.backendOffline;
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -186,8 +196,23 @@ export default function LivePage({ onBack }) {
         )}
       </div>
 
+      {/* ── BACKEND OFFLINE ── */}
+      {isOffline && (
+        <div style={{
+          flex: 1, display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center", gap: 8,
+        }}>
+          <span style={{ fontSize: 11, letterSpacing: 2, color: "rgba(255,255,255,0.3)", textTransform: "uppercase" }}>
+            Backend Offline
+          </span>
+          <span style={{ fontSize: 11, letterSpacing: 1, color: "rgba(255,255,255,0.15)", textTransform: "uppercase" }}>
+            Start the server on the host machine to continue.
+          </span>
+        </div>
+      )}
+
       {/* ── COUNTDOWN (pre-weekend) ── */}
-      {!inWeekend && nextRace && countdown && (
+      {!isOffline && !inWeekend && nextRace && countdown && (
         <div className="flex-1 flex flex-col items-center justify-center px-8 py-16 max-w-2xl mx-auto w-full">
           <div className="flex items-center gap-2 mb-8">
             <div className="w-4 h-[2px] bg-red-600" />
@@ -265,7 +290,7 @@ export default function LivePage({ onBack }) {
       )}
 
       {/* ── RACE WEEKEND ── */}
-      {inWeekend && (
+      {!isOffline && inWeekend && (
         <div className="flex flex-col flex-1">
           {/* Session selector */}
           <div className="px-6 py-3 border-b border-[#1e1e2e] bg-[#0a0a0f] flex items-center gap-3 flex-wrap">
@@ -363,7 +388,7 @@ export default function LivePage({ onBack }) {
       )}
 
       {/* No schedule loaded yet */}
-      {!nextRace && !schedule.length && (
+      {!isOffline && !nextRace && !schedule.length && (
         <div className="flex-1 flex items-center justify-center">
           <div className="w-4 h-4 rounded-full border-2 border-red-600 border-t-transparent animate-spin" />
         </div>

@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
-
-const API = "/api";
+import { API } from "../utils/api";
 
 export function useSession() {
   const [events, setEvents] = useState([]);
@@ -11,13 +10,15 @@ export function useSession() {
   const [telemetry, setTelemetry] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [backendOffline, setBackendOffline] = useState(false);
 
   const fetchEvents = useCallback(async (year) => {
     try {
       const res = await fetch(`${API}/sessions/${year}`);
       setEvents(await res.json());
     } catch (e) {
-      setError(e.message);
+      if (e instanceof TypeError) setBackendOffline(true);
+      else setError(e.message);
     }
   }, []);
 
@@ -45,7 +46,8 @@ export function useSession() {
       setTrack(await trackRes.json());
       setStandingsByLap(await standRes.json());
     } catch (e) {
-      setError(e.message);
+      if (e instanceof TypeError) setBackendOffline(true);
+      else setError(e.message);
     } finally {
       setLoading(false);
     }
@@ -67,8 +69,11 @@ export function useSession() {
       if (!Array.isArray(data)) throw new Error("Telemetry: unexpected response format");
       setTelemetry(data);
     } catch (e) {
-      setError(e.message);
-      setTelemetry(null); // null = error state, [] = loading
+      if (e instanceof TypeError) setBackendOffline(true);
+      else {
+        setError(e.message);
+        setTelemetry(null); // null = error state, [] = loading
+      }
     }
   }, []);
 
@@ -81,6 +86,7 @@ export function useSession() {
     telemetry,
     loading,
     error,
+    backendOffline,
     fetchEvents,
     loadSession,
     fetchTelemetry,

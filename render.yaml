@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: deltatime
+    runtime: python
+    # Build: install Python deps, then build the React frontend
+    buildCommand: pip install -r backend/requirements.txt && npm ci --prefix frontend && npm run build --prefix frontend
+    # Start: run uvicorn from backend/ so local imports (historical, live) resolve
+    startCommand: bash -c "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
+    disk:
+      name: f1-cache
+      mountPath: /var/data
+      sizeGB: 5
+    envVars:
+      - key: F1_CACHE_DIR
+        value: /var/data/f1cache
+      - key: PYTHON_VERSION
+        value: 3.11.0

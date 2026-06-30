@@ -1,9 +1,11 @@
+import os
 import fastf1
 import numpy as np
 import pandas as pd
 from pathlib import Path
 
-fastf1.Cache.enable_cache(str(Path(__file__).parent / "cache"))
+_cache_dir = os.environ.get("F1_CACHE_DIR", str(Path(__file__).parent / "cache"))
+fastf1.Cache.enable_cache(_cache_dir)
 
 TEAM_COLOURS = {
     "Red Bull Racing": "#3671C6",

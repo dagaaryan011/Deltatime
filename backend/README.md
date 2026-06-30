@@ -1,52 +1,32 @@
-# Backend — Local Setup
+# Deltatime — backend
 
-The FastAPI backend runs on your local machine. A Cloudflare Tunnel exposes it to the internet so the Vercel-hosted frontend can reach it.
+FastAPI + FastF1 backend. Exposed to the internet via Cloudflare Tunnel.
 
-## One-time setup
+## Permanent public URL
+https://526edc09-1ce6-4947-bfd6-11ef494b3ac4.cfargotunnel.com
 
-**1. Install cloudflared (Linux amd64)**
+This URL never changes. Set it as VITE_API_URL in Vercel once and forget it.
 
-```bash
-wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-sudo dpkg -i cloudflared-linux-amd64.deb
-```
+## Prerequisites (one-time setup, already done on Sadaharu-03)
+- Python deps: `pip install -r requirements.txt --break-system-packages`
+- cloudflared installed via apt
 
-**2. Install Python dependencies**
-
+## Every race weekend
 ```bash
 cd backend
-pip install -r requirements.txt
-```
-
-FastF1 will download session data to `backend/cache/` on first load (30–60 s per session).
-
-## Running
-
-From inside the `backend/` directory:
-
-```bash
 bash start.sh
 ```
 
-This starts both uvicorn and the tunnel together. Output looks like:
+Ctrl+C to stop both FastAPI and the tunnel together.
 
+## Tunnel details
+- Name: deltatime
+- ID: 526edc09-1ce6-4947-bfd6-11ef494b3ac4
+- Token: stored in start.sh (not committed to git)
+- Edge locations: Mumbai (maa05, bom10) — optimal for India
+
+## Health check
+```bash
+curl https://526edc09-1ce6-4947-bfd6-11ef494b3ac4.cfargotunnel.com/health
+# Expected: {"status": "ok"}
 ```
-INFO:     Started server process [12345]
-INFO:     Application startup complete.
-...
-+--------------------------------------------------------------------------------------------+
-|  Your quick Tunnel has been created! Visit it at (it may take some seconds to be active): |
-|  https://abc-def-123.trycloudflare.com                                                    |
-+--------------------------------------------------------------------------------------------+
-```
-
-Copy the `https://…trycloudflare.com` URL — that is your `VITE_API_URL`.
-
-**Ctrl-C** stops both processes.
-
-## After each restart
-
-The tunnel URL changes every time you run `start.sh`. Update `VITE_API_URL` in:
-
-- **Local dev**: `frontend/.env.local` → `VITE_API_URL=https://new-url.trycloudflare.com`
-- **Vercel**: Project Settings → Environment Variables → update `VITE_API_URL`, then redeploy.

@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e
+
+# Deltatime backend startup script
+# Copy this file to start.sh and fill in your Cloudflare tunnel token
+# Get your token from: Cloudflare dashboard → Networking → Tunnels → deltatime → Overview
+
+echo "Starting Deltatime backend..."
+
+uvicorn main:app --host 0.0.0.0 --port 8000 &
+FASTAPI_PID=$!
+echo "FastAPI started (PID $FASTAPI_PID)"
+
+cloudflared tunnel run --token YOUR_CLOUDFLARE_TUNNEL_TOKEN_HERE
+
+echo "Tunnel exited, shutting down FastAPI..."
+kill $FASTAPI_PID

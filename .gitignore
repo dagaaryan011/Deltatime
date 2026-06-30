@@ -11,6 +11,9 @@ env/
 # FastF1 data cache — can be 1GB+, not suitable for git
 backend/cache/
 
+# Tunnel token — secret credential, never commit
+backend/start.sh
+
 # Frontend build output & dependencies
 frontend/node_modules/
 frontend/dist/

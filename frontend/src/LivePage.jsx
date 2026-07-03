@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession } from "./hooks/useSession";
 import { useLiveSession } from "./hooks/useLiveSession";
-import { BASE, API } from "./utils/api";
+import { BASE, API, HEADERS } from "./utils/api";
 import TrackMap from "./components/TrackMap";
 import StandingsTable from "./components/StandingsTable";
 import TelemetryPanel from "./components/TelemetryPanel";
@@ -68,14 +68,14 @@ export default function LivePage({ onBack }) {
 
   // Health check on mount — instant offline detection before WS timeout
   useEffect(() => {
-    fetch(`${BASE}/health`)
+    fetch(`${BASE}/health`, { headers: HEADERS })
       .then((r) => { if (!r.ok) setBackendOffline(true); })
       .catch(() => setBackendOffline(true));
   }, []);
 
   // Fetch schedule once
   useEffect(() => {
-    fetch(`${API}/sessions/2026`)
+    fetch(`${API}/sessions/2026`, { headers: HEADERS })
       .then((r) => r.json())
       .then(setSchedule)
       .catch(() => {});

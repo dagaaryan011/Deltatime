@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { API } from "../utils/api";
+import { API, HEADERS } from "../utils/api";
 
 export function useSession() {
   const [events, setEvents] = useState([]);
@@ -14,7 +14,7 @@ export function useSession() {
 
   const fetchEvents = useCallback(async (year) => {
     try {
-      const res = await fetch(`${API}/sessions/${year}`);
+      const res = await fetch(`${API}/sessions/${year}`, { headers: HEADERS });
       setEvents(await res.json());
     } catch (e) {
       if (e instanceof TypeError) setBackendOffline(true);
@@ -31,16 +31,16 @@ export function useSession() {
     setStandingsByLap({});
     setTelemetry([]);
     try {
-      const res = await fetch(`${API}/session/${year}/${round}/${type}`);
+      const res = await fetch(`${API}/session/${year}/${round}/${type}`, { headers: HEADERS });
       if (!res.ok) throw new Error(await res.text());
       const info = await res.json();
       setSessionInfo(info);
 
       const sid = info.session_id;
       const [framesRes, trackRes, standRes] = await Promise.all([
-        fetch(`${API}/session/${sid}/all_positions`),
-        fetch(`${API}/session/${sid}/track`),
-        fetch(`${API}/session/${sid}/standings_by_lap`),
+        fetch(`${API}/session/${sid}/all_positions`, { headers: HEADERS }),
+        fetch(`${API}/session/${sid}/track`, { headers: HEADERS }),
+        fetch(`${API}/session/${sid}/standings_by_lap`, { headers: HEADERS }),
       ]);
       setFrames(await framesRes.json());
       setTrack(await trackRes.json());
@@ -60,7 +60,7 @@ export function useSession() {
       const url = lap
         ? `${API}/session/${sessionId}/telemetry/${driver}?lap=${lap}`
         : `${API}/session/${sessionId}/telemetry/${driver}`;
-      const res = await fetch(url);
+      const res = await fetch(url, { headers: HEADERS });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(`Telemetry ${res.status}: ${body.detail ?? res.statusText}`);

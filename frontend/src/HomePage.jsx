@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { API } from "./utils/api";
 
 // ── utilities ─────────────────────────────────────────────────────────────────
 
@@ -97,7 +98,7 @@ export default function HomePage({ onNavigate }) {
   // ── data ──────────────────────────────────────────────────────────────────
 
   useEffect(() => {
-    fetch("/api/sessions/2026")
+    fetch(`${API}/sessions/2026`)
       .then((r) => r.json())
       .then(setSchedule)
       .catch(() => {});
